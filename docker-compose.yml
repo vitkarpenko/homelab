@@ -1,6 +1,21 @@
 version: "3"
 
 services:
+  traefik:
+    image: traefik:v2.0.1
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - proxy
   bookstack:
     image: linuxserver/bookstack
     container_name: bookstack
@@ -9,13 +24,23 @@ services:
       - DB_USER=bookstack
       - DB_PASS=bookstack
       - DB_DATABASE=bookstack
+      - APP_URL=http://192.168.1.53
+    expose:
+      - "80"
     volumes:
       - ./data/bookstack:/config
-    ports:
-      - 6875:80
     restart: unless-stopped
     depends_on:
       - bookstack_maria
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bookstack.rule=Host(`192.168.1.53`)"
+      - "traefik.port=80"
+      - "traefik.http.routers.bookstack.entrypoints=web"
+      - "traefik.docker.network=proxy"
+    networks:
+      - internal
+      - proxy
   bookstack_maria:
     image: linuxserver/mariadb
     container_name: bookstack_maria
@@ -27,3 +52,10 @@ services:
     volumes:
       - ./data/bookstack_maria:/config
     restart: unless-stopped
+    networks:
+      - internal
+
+networks:
+  internal:
+  proxy:
+    external: true
