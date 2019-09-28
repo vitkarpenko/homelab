@@ -16,44 +16,27 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - proxy
-  bookstack:
-    image: linuxserver/bookstack:arm32v7-latest
-    container_name: bookstack
+  nextcloud:
+    image: linuxserver/nextcloud:arm32v7-latest
+    container_name: nextcloud
     environment:
-      - DB_HOST=bookstack_maria
-      - DB_USER=bookstack
-      - DB_PASS=bookstack
-      - DB_DATABASE=bookstack
-      - APP_URL=http://192.168.1.53
+      - TZ=Europe/Moscow
     expose:
       - "80"
     volumes:
-      - ./data/bookstack:/config
+      - ./data/nextcloud/appdata:/config
+      - ./data/nextcloud/data:/data
     restart: unless-stopped
-    depends_on:
-      - bookstack_maria
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bookstack.rule=(Host(`192.168.1.53`))"
+      - "traefik.http.routers.nextcloud.rule=(Host(`192.168.1.53`) && PathPrefix(`/cloud`))"
+      - "traefik.http.middlewares.nextcloud-stripprefix.stripprefix.prefixes=/cloud"
+      - "traefik.http.routers.nextcloud.middlewares=nextcloud-stripprefix@docker"
       - "traefik.port=80"
-      - "traefik.http.routers.bookstack.entrypoints=web"
+      - "traefik.http.routers.nextcloud.entrypoints=web"
       - "traefik.docker.network=proxy"
     networks:
-      - internal
       - proxy
-  bookstack_maria:
-    image: linuxserver/mariadb
-    container_name: bookstack_maria
-    environment:
-      - TZ=Europe/Moscow
-      - MYSQL_DATABASE=bookstack
-      - MYSQL_USER=bookstack
-      - MYSQL_PASSWORD=bookstack
-    volumes:
-      - ./data/bookstack_maria:/config
-    restart: unless-stopped
-    networks:
-      - internal
 
 networks:
   internal:
