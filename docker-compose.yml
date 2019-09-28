@@ -17,7 +17,7 @@ services:
     networks:
       - proxy
   bookstack:
-    image: linuxserver/bookstack
+    image: linuxserver/bookstack:arm32v7-latest
     container_name: bookstack
     environment:
       - DB_HOST=bookstack_maria
@@ -34,7 +34,7 @@ services:
       - bookstack_maria
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bookstack.rule=Host(`192.168.1.53`)"
+      - "traefik.http.routers.bookstack.rule=(Host(`192.168.1.53`))"
       - "traefik.port=80"
       - "traefik.http.routers.bookstack.entrypoints=web"
       - "traefik.docker.network=proxy"
@@ -58,4 +58,5 @@ services:
 networks:
   internal:
   proxy:
-    external: true
+    external:
+      name: proxy
