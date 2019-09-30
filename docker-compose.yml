@@ -5,6 +5,7 @@ services:
     image: traefik:v2.0.1
     container_name: traefik
     command:
+      - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -36,11 +37,17 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dokuwiki.rule=Host(`wiki.vitkarpenko.xyz`)"
+      # HTTP -> HTTPS
+      - "traefik.http.routers.dokuwiki-http.rule=Host(`wiki.vitkarpenko.xyz`)"
+      - "traefik.http.middlewares.dokuwiki-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.dokuwiki-http.middlewares=dokuwiki-https-redirect@docker"
+      - "traefik.http.routers.dokuwiki-http.entrypoints=web"
+      # HTTPS
+      - "traefik.http.routers.dokuwiki-https.rule=Host(`wiki.vitkarpenko.xyz`)"
+      - "traefik.http.routers.dokuwiki-https.entrypoints=websecure"
+      - "traefik.http.routers.dokuwiki-https.tls.certresolver=httpchallenge"
       - "traefik.port=443"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.dokuwiki.entrypoints=websecure"
-      - "traefik.http.routers.dokuwiki.tls.certresolver=httpchallenge"
     networks:
       - proxy
 
