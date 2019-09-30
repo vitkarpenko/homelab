@@ -9,37 +9,42 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.httpchallenge.acme.httpchallenge=true"
+      - "--certificatesresolvers.httpchallenge.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.httpchallenge.acme.email=vitkarpenko@gmail.com.com"
+      - "--certificatesresolvers.httpchallenge.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
     volumes:
+      - "./data/letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - proxy
-  nextcloud:
-    image: linuxserver/nextcloud:arm32v7-latest
-    container_name: nextcloud
+  dokuwiki:
+    image: linuxserver/dokuwiki:arm32v7-latest
+    container_name: dokuwiki
     environment:
       - TZ=Europe/Moscow
     expose:
       - "80"
+      - "443"
     volumes:
-      - ./data/nextcloud/appdata:/config
-      - ./data/nextcloud/data:/data
+      - ./data/dokuwiki:/config
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nextcloud.rule=(Host(`192.168.1.53`) && PathPrefix(`/cloud`))"
-      - "traefik.http.middlewares.nextcloud-stripprefix.stripprefix.prefixes=/cloud"
-      - "traefik.http.routers.nextcloud.middlewares=nextcloud-stripprefix@docker"
-      - "traefik.port=80"
-      - "traefik.http.routers.nextcloud.entrypoints=web"
+      - "traefik.http.routers.dokuwiki.rule=Host(`wiki.vitkarpenko.xyz`)"
+      - "traefik.port=443"
       - "traefik.docker.network=proxy"
+      - "traefik.http.routers.dokuwiki.entrypoints=websecure"
+      - "traefik.http.routers.dokuwiki.tls.certresolver=httpchallenge"
     networks:
       - proxy
 
 networks:
-  internal:
   proxy:
     external:
       name: proxy
