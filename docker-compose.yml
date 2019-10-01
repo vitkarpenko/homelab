@@ -13,7 +13,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.httpchallenge.acme.httpchallenge=true"
       - "--certificatesresolvers.httpchallenge.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.httpchallenge.acme.email=vitkarpenko@gmail.com.com"
+      - "--certificatesresolvers.httpchallenge.acme.email=vitkarpenko@gmail.com"
       - "--certificatesresolvers.httpchallenge.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
@@ -73,6 +73,32 @@ services:
       - "traefik.http.routers.calibre-https.entrypoints=websecure"
       - "traefik.http.routers.calibre-https.tls.certresolver=httpchallenge"
       - "traefik.port=8083"
+      - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+  rss:
+    image: linuxserver/freshrss:arm32v7-latest
+    container_name: rss
+    environment:
+      - TZ=Europe/Moscow
+    expose:
+      - "80"
+      - "443"
+    volumes:
+      - ./data/rss/data:/config
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      # HTTP -> HTTPS
+      - "traefik.http.routers.rss-http.rule=Host(`rss.vitkarpenko.xyz`)"
+      - "traefik.http.middlewares.rss-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.rss-http.middlewares=rss-https-redirect@docker"
+      - "traefik.http.routers.rss-http.entrypoints=web"
+      # HTTPS
+      - "traefik.http.routers.rss-https.rule=Host(`rss.vitkarpenko.xyz`)"
+      - "traefik.http.routers.rss-https.entrypoints=websecure"
+      - "traefik.http.routers.rss-https.tls.certresolver=httpchallenge"
+      - "traefik.port=80"
       - "traefik.docker.network=proxy"
     networks:
       - proxy
