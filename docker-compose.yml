@@ -24,29 +24,55 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - proxy
-  dokuwiki:
-    image: linuxserver/dokuwiki:arm32v7-latest
-    container_name: dokuwiki
+#  dokuwiki:
+#    image: linuxserver/dokuwiki:arm32v7-latest
+#    container_name: dokuwiki
+#    environment:
+#      - TZ=Europe/Moscow
+#    expose:
+#      - "80"
+#      - "443"
+#    volumes:
+#      - ./data/dokuwiki:/config
+#    restart: unless-stopped
+#    labels:
+#      - "traefik.enable=true"
+#      # HTTP -> HTTPS
+#      - "traefik.http.routers.dokuwiki-http.rule=Host(`wiki.vitkarpenko.xyz`)"
+#      - "traefik.http.middlewares.dokuwiki-https-redirect.redirectscheme.scheme=https"
+#      - "traefik.http.routers.dokuwiki-http.middlewares=dokuwiki-https-redirect@docker"
+#      - "traefik.http.routers.dokuwiki-http.entrypoints=web"
+#      # HTTPS
+#      - "traefik.http.routers.dokuwiki-https.rule=Host(`wiki.vitkarpenko.xyz`)"
+#      - "traefik.http.routers.dokuwiki-https.entrypoints=websecure"
+#      - "traefik.http.routers.dokuwiki-https.tls.certresolver=httpchallenge"
+#      - "traefik.port=443"
+#      - "traefik.docker.network=proxy"
+#    networks:
+#      - proxy
+  calibre:
+    image: linuxserver/calibre-web:arm32v7-latest
+    container_name: calibre
     environment:
       - TZ=Europe/Moscow
     expose:
-      - "80"
-      - "443"
+      - "8083"
     volumes:
-      - ./data/dokuwiki:/config
+      - ./data/calibre/data:/config
+      - ./data/calibre/library:/books
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
       # HTTP -> HTTPS
-      - "traefik.http.routers.dokuwiki-http.rule=Host(`wiki.vitkarpenko.xyz`)"
-      - "traefik.http.middlewares.dokuwiki-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.dokuwiki-http.middlewares=dokuwiki-https-redirect@docker"
-      - "traefik.http.routers.dokuwiki-http.entrypoints=web"
+      - "traefik.http.routers.calibre-http.rule=Host(`books.vitkarpenko.xyz`)"
+      - "traefik.http.middlewares.calibre-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.calibre-http.middlewares=calibre-https-redirect@docker"
+      - "traefik.http.routers.calibre-http.entrypoints=web"
       # HTTPS
-      - "traefik.http.routers.dokuwiki-https.rule=Host(`wiki.vitkarpenko.xyz`)"
-      - "traefik.http.routers.dokuwiki-https.entrypoints=websecure"
-      - "traefik.http.routers.dokuwiki-https.tls.certresolver=httpchallenge"
-      - "traefik.port=443"
+      - "traefik.http.routers.calibre-https.rule=Host(`books.vitkarpenko.xyz`)"
+      - "traefik.http.routers.calibre-https.entrypoints=websecure"
+      - "traefik.http.routers.calibre-https.tls.certresolver=httpchallenge"
+      - "traefik.port=8083"
       - "traefik.docker.network=proxy"
     networks:
       - proxy
