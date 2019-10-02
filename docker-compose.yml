@@ -1,6 +1,9 @@
 version: "3"
 
 services:
+  ###############
+  # Reverse proxy
+  ###############
   traefik:
     image: traefik:v2.0.1
     container_name: traefik
@@ -24,6 +27,9 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - proxy
+  ###############
+  # Personal wiki
+  ###############
   dokuwiki:
     image: linuxserver/dokuwiki:arm32v7-latest
     container_name: dokuwiki
@@ -50,6 +56,9 @@ services:
       - "traefik.docker.network=proxy"
     networks:
       - proxy
+  ###############
+  # Ebook library
+  ###############
   calibre:
     image: linuxserver/calibre-web:arm32v7-latest
     container_name: calibre
@@ -76,6 +85,9 @@ services:
       - "traefik.docker.network=proxy"
     networks:
       - proxy
+  ################
+  # RSS aggregator
+  ################
   rss:
     image: linuxserver/freshrss:arm32v7-latest
     container_name: rss
@@ -99,6 +111,35 @@ services:
       - "traefik.http.routers.rss-https.entrypoints=websecure"
       - "traefik.http.routers.rss-https.tls.certresolver=httpchallenge"
       - "traefik.port=80"
+      - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+  #########
+  # Torrent
+  #########
+  deluge:
+    image: linuxserver/deluge:arm32v7-latest
+    container_name: deluge
+    environment:
+      - TZ=Europe/Moscow
+    expose:
+      - "8112"
+    volumes:
+      - ./data/deluge/data:/config
+      - ./data/deluge/downloads:/downloads
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      # HTTP -> HTTPS
+      - "traefik.http.routers.deluge-http.rule=Host(`torrent.vitkarpenko.xyz`)"
+      - "traefik.http.middlewares.deluge-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.deluge-http.middlewares=deluge-https-redirect@docker"
+      - "traefik.http.routers.deluge-http.entrypoints=web"
+      # HTTPS
+      - "traefik.http.routers.deluge-https.rule=Host(`torrent.vitkarpenko.xyz`)"
+      - "traefik.http.routers.deluge-https.entrypoints=websecure"
+      - "traefik.http.routers.deluge-https.tls.certresolver=httpchallenge"
+      - "traefik.port=8112"
       - "traefik.docker.network=proxy"
     networks:
       - proxy
