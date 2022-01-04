@@ -1,17 +1,22 @@
 version: "3"
 
 services:
-  #########
-  # Torrent
-  #########
-  deluge:
-    image: linuxserver/deluge:arm32v7-latest
-    container_name: deluge
-    environment:
-      - TZ=Europe/Moscow
-    expose:
-      - "8112"
-    volumes:
-      - ./data/deluge/data:/config
-      - ../media/torrent:/downloads
-    restart: unless-stopped
+        #########
+        # Torrent
+        #########
+        deluge:
+                image: lscr.io/linuxserver/deluge
+                container_name: deluge
+                environment:
+                        - PUID=1000
+                        - PGID=1000
+                        - TZ=Europe/London
+                        - DELUGE_LOGLEVEL=error #optional
+                volumes:
+                        - ./data/deluge/data:/config
+                        - /data/nfs:/downloads
+                ports:
+                        - 8112:8112
+                        - 6881:6881
+                        - 6881:6881/udp
+                restart: unless-stopped
