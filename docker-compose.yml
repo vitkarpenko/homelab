@@ -1,16 +1,16 @@
 version: "3"
 
 services:
-  #########
-  # Torrent
-  #########
+  ###########
+  # Torrent #
+  ###########
   deluge:
     image: lscr.io/linuxserver/deluge
     container_name: deluge
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/London
+      - TZ=Europe/Moscow
       - DELUGE_LOGLEVEL=error #optional
     volumes:
       - ./data/deluge/data:/config
@@ -21,19 +21,39 @@ services:
       - 6881:6881/udp
     restart: unless-stopped
 
-  ############
-  # Homebridge
-  ############
+  ##############
+  # Homebridge #
+  ##############
   homebridge:
     image: oznu/homebridge:ubuntu
-    restart: always
     network_mode: host
     environment:
       - PGID=1000
       - PUID=1000
       - HOMEBRIDGE_CONFIG_UI=1
       - HOMEBRIDGE_CONFIG_UI_PORT=8581
-      - TZ=Australia/Canberra
+      - TZ=Europe/Moscow
     volumes:
       - ./data/homebridge:/homebridge
+    restart: unless-stopped
 
+  ###################
+  # Adblocker / DNS #
+  ###################
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "80:80/tcp"
+    environment:
+      TZ: 'Europe/Moscow'
+      WEBPASSWORD: '24226838'
+    volumes:
+      - './data/pihole/etc:/etc/pihole'
+      - './data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
