@@ -36,24 +36,3 @@ services:
     volumes:
       - ./data/homebridge:/homebridge
     restart: unless-stopped
-
-  ###################
-  # Adblocker / DNS #
-  ###################
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "67:67/udp"
-      - "80:80/tcp"
-    environment:
-      TZ: 'Europe/Moscow'
-      WEBPASSWORD: '24226838'
-    volumes:
-      - './data/pihole/etc:/etc/pihole'
-      - './data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
