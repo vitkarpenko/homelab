@@ -22,9 +22,9 @@ borg create                         \
     --show-rc                       \
     --compression lz4               \
     ::'{now}'            \
-    /home/vitkarpenko/homelab
+    /home/vitkarpenko/homelab/data
 
-info "Pruning repository"
+echo "Pruning repository"
 
 borg prune                          \
     --list                          \
